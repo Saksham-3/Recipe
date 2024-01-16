@@ -2,8 +2,10 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import * as RecipeAPI from "./rec-api";
+import { PrismaClient } from "@prisma/client";
 
 const app = express();
+const prismaClient = new PrismaClient();
 
 app.use(express.json());
 app.use(cors());
@@ -21,6 +23,31 @@ app.get("/api/recipes/:recipeId/summary", async (req, res) => {
   const results = await RecipeAPI.getRecipeSummary(recipeId);
 
   return res.json(results);
+});
+
+app.post("/api/recipes/favourite", async (req, res) => {
+  const recipeId = req.body.recipeId;
+
+  try {
+    const favouriteRecipe = await prismaClient.favouriteRecipes.create({
+      data: {
+        recipeId: recipeId,
+      },
+    });
+    return res.status(201).json(favouriteRecipe);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Oops, something went wrong." });
+  }
+});
+
+app.get("/api/recipes/favourite", async (req, res) => {
+  try {
+    const recipes = await prismaClient.favouriteRecipes.findMany();
+    const recipeIds = recipes.map((recipe) => recipe.recipeId.toString());
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 app.listen(5000, () => {

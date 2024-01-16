@@ -39,6 +39,18 @@ export const getRecipeSummary = async (recipeId: string) => {
   const json = await response.json();
   return json;
 };
+
+export const getFavouriteRecipesByIDs = async (ids: string[]) => {
+  if (!apiKey) {
+    throw new Error("API Key not found.");
+  }
+  const url = new URL("https://api.spoonacular.com/recipes/informationBulk");
+  const params = {
+    apiKey: apiKey,
+    ids: ids.join(","),
+  };
+  url.search = new URLSearchParams(params).toString();
+};
 // export const getRandom = async (page: number) => {
 //   if (!apiKey) {
 //     throw new Error("API Key not found.");
