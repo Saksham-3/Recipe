@@ -50,6 +50,11 @@ export const getFavouriteRecipesByIDs = async (ids: string[]) => {
     ids: ids.join(","),
   };
   url.search = new URLSearchParams(params).toString();
+
+  const searchResponse = await fetch(url);
+  const json = await searchResponse.json();
+
+  return { results: json };
 };
 // export const getRandom = async (page: number) => {
 //   if (!apiKey) {

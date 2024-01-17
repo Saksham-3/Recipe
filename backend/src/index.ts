@@ -45,8 +45,29 @@ app.get("/api/recipes/favourite", async (req, res) => {
   try {
     const recipes = await prismaClient.favouriteRecipes.findMany();
     const recipeIds = recipes.map((recipe) => recipe.recipeId.toString());
+
+    const favourites = await RecipeAPI.getFavouriteRecipesByIDs(recipeIds);
+
+    return res.json(favourites);
   } catch (error) {
     console.log(error);
+    return res.status(500).json({ error: "Oops, something went wrong." });
+  }
+});
+
+app.delete("/api/recipes/favourite", async (req, res) => {
+  const recipeId = req.body.recipeId;
+
+  try {
+    await prismaClient.favouriteRecipes.delete({
+      where: {
+        recipeId: recipeId,
+      },
+    });
+    return res.status(204).send();
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Oops, something went wrong." });
   }
 });
 
