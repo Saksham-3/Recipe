@@ -10,6 +10,13 @@ const prismaClient = new PrismaClient();
 app.use(express.json());
 app.use(cors());
 
+app.get("/api/recipes/random", async (req, res) => {
+  const pageNum = parseInt(req.query.page as string);
+  const resultsRand = await RecipeAPI.getRandom(pageNum);
+
+  return res.json(resultsRand);
+});
+
 app.get("/api/recipes/search", async (req, res) => {
   const searchTerm = req.query.searchTerm as string;
   const page = parseInt(req.query.page as string);

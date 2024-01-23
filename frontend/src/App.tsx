@@ -6,7 +6,7 @@ import RecipeCard from "./components/RecipeCard";
 import RecipeModal from "./components/RecipeModal";
 import { AiOutlineSearch } from "react-icons/ai";
 
-type Tabs = "search" | "favourites";
+type Tabs = "home" | "favourites";
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -14,8 +14,11 @@ const App = () => {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | undefined>(
     undefined
   );
-  const [selectedTab, setSelectedTab] = useState<Tabs>("search");
+  const [selectedTab, setSelectedTab] = useState<Tabs>("home");
   const [favouriteRecipes, setFavouriteRecipes] = useState<Recipe[]>([]);
+  const [randomRecipes, setRandomRecipes] = useState<Recipe[]>([]);
+  const [forceUpdate, setForceUpdate] = useState(false);
+
   const pageNumber = useRef(1);
 
   useEffect(() => {
@@ -31,25 +34,51 @@ const App = () => {
     fetchFavouriteRecipes();
   }, []);
 
-  const handleSearchSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    try {
-      const recipes = await api.searchRecipes(searchTerm, 1);
-      setRecipes(recipes.results);
-      pageNumber.current = 1;
-    } catch (e) {
-      console.log(e);
+  useEffect(() => {
+    const fetchRandomRecipes = async () => {
+      try {
+        const randomRecipesResponse = await api.getRandom(10);
+        if (randomRecipesResponse && randomRecipesResponse.recipes) {
+          setRandomRecipes(randomRecipesResponse.recipes);
+        } else {
+          console.error(
+            "Error fetching random recipes:",
+            randomRecipesResponse
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching random recipes:", error);
+      }
+    };
+
+    if (selectedTab === "home") {
+      // Fetch random recipes only when "home" tab is selected
+      fetchRandomRecipes();
     }
-  };
+  }, [selectedTab]);
+  console.log("Component re-rendered");
 
   const handleViewMore = async () => {
     const nextPage = pageNumber.current + 1;
     try {
       const nextRecipes = await api.searchRecipes(searchTerm, nextPage);
-      setRecipes([...recipes, ...nextRecipes.results]);
+      setRecipes((prevRecipes) => [...prevRecipes, ...nextRecipes.results]);
       pageNumber.current = nextPage;
+      console.log("Recipes after View More:", recipes);
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching more recipes:", error);
+    }
+  };
+
+  const handleSearchSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    try {
+      const newRecipes = await api.searchRecipes(searchTerm, 1);
+      setRecipes(newRecipes.results);
+      pageNumber.current = 1;
+      setForceUpdate((prevState) => !prevState);
+    } catch (e) {
+      console.error("Error searching recipes:", e);
     }
   };
 
@@ -83,11 +112,11 @@ const App = () => {
       </div>
       <div className="tabs">
         <h1
-          className={selectedTab === "search" ? "tab-active" : ""}
-          onClick={() => setSelectedTab("search")}
+          className={selectedTab === "home" ? "tab-active" : ""}
+          onClick={() => setSelectedTab("home")}
         >
           {" "}
-          Search{" "}
+          Home{" "}
         </h1>
         <h1
           className={selectedTab === "favourites" ? "tab-active" : ""}
@@ -97,13 +126,13 @@ const App = () => {
           Favourites{" "}
         </h1>
       </div>
-      {selectedTab === "search" && (
+      {selectedTab === "home" && (
         <>
           <form onSubmit={(event) => handleSearchSubmit(event)}>
             <input
               type="text"
               required
-              placeholder="Enter a search term"
+              placeholder="Search a recipe"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
             ></input>
@@ -113,13 +142,14 @@ const App = () => {
           </form>
 
           <div className="recipe-grid">
-            {recipes.map((recipe) => {
+            {randomRecipes.map((recipe) => {
               const isFavourite = favouriteRecipes.some(
                 (favRecipe) => recipe.id === favRecipe.id
               );
 
               return (
                 <RecipeCard
+                  key={recipe.id}
                   recipe={recipe}
                   onClick={() => setSelectedRecipe(recipe)}
                   onFavouriteButtonClick={

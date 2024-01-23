@@ -1,5 +1,16 @@
 import { Recipe } from "./types";
 
+export const getRandom = async (number: number) => {
+  const url = new URL("http://localhost:5000/api/recipes/random");
+  url.searchParams.append("number", String(number));
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`HTTP Error! Status: ${response.status}`);
+  }
+
+  return response.json();
+};
+
 export const searchRecipes = async (searchTerm: string, page: number) => {
   const baseUrl = new URL("http://localhost:5000/api/recipes/search");
   baseUrl.searchParams.append("searchTerm", searchTerm);

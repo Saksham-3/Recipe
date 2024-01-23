@@ -56,25 +56,25 @@ export const getFavouriteRecipesByIDs = async (ids: string[]) => {
 
   return { results: json };
 };
-// export const getRandom = async (page: number) => {
-//   if (!apiKey) {
-//     throw new Error("API Key not found.");
-//   }
+export const getRandom = async (page: number) => {
+  if (!apiKey) {
+    throw new Error("API Key not found.");
+  }
 
-//   const url = new URL("https://api.spoonacular.com/recipes/random");
+  const url = new URL("https://api.spoonacular.com/recipes/random");
 
-//   const Para = {
-//     apiKey,
-//     number: "10",
-//     offset: (page * 10).toString(),
-//   };
-//   url.search = new URLSearchParams(Para).toString();
+  const Para = {
+    apiKey,
+    number: "10",
+    offset: (page * 10).toString(),
+  };
+  url.search = new URLSearchParams(Para).toString();
 
-//   try {
-//     const searchRes = await fetch(url);
-//     const resultJson = await searchRes.json();
-//     return resultJson;
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
+  try {
+    const searchRes = await fetch(url);
+    const resultJson = await searchRes.json();
+    return resultJson;
+  } catch (error) {
+    console.log(error);
+  }
+};
